@@ -1,7 +1,5 @@
 import 'dart:io';
-import 'dart:ui';
 
-import 'package:animate_gradient/animate_gradient.dart';
 import 'package:contect_book_using_hive_database/contect_add.dart';
 import 'package:contect_book_using_hive_database/contect_data.dart';
 import 'package:flutter/material.dart';
@@ -29,99 +27,193 @@ class Contect_List extends StatefulWidget {
 }
 
 class _Contect_ListState extends State<Contect_List> {
+  List found_user = [];
+  List User = [];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    for (int i = 0; i < Contect_List.contect.length; i++) {
+      Contect_Data cd = Contect_List.contect.getAt(i);
+      found_user.addAll([
+        {
+          "name": cd.name,
+          "contect": cd.contect,
+          "image": cd.cropImage,
+          "gender": cd.gender
+        }
+      ]);
+      User = found_user;
+    }
+  }
+
+  Search(String keyword) {
+    var result;
+    if (keyword.isEmpty) {
+      result = found_user;
+    } else {
+      result = found_user
+          .where((user) => user["name"]
+              .toString()
+              .toLowerCase()
+              .contains(keyword.toLowerCase()))
+          .toList();
+    }
+    setState(() {
+      User = result;
+    });
+  }
+
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
         return true;
       },
-      child: Scaffold(
-        extendBodyBehindAppBar: true,
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          automaticallyImplyLeading: false,
-          title: Text("Contect Book"),
-        ),
-        body: AnimateGradient(
-          primaryColors: [
-            Color(0xdda6c0fe),
-            Color(0xffa18cd1),
-            Color(0xfffbc2eb)
-          ],
-          secondaryColors: [
-            Color(0xffa18cd1),
-            Color(0xfffbc2eb),
-            Color(0xdda6c0fe),
-          ],
-          child: SafeArea(
-              child: ListView.builder(
-            itemCount: Contect_List.contect.length,
-            itemBuilder: (context, index) {
-              Contect_Data cd = Contect_List.contect.getAt(index);
-              return Card(color: Colors.transparent,
-                child: Slidable(
-                    startActionPane:
-                        ActionPane(motion: ScrollMotion(), children: [
-                      SlidableAction(
-                        onPressed: (context) {
-                          Navigator.push(context, MaterialPageRoute(
-                            builder: (context) {
-                              return Contect_add(cd);
-                            },
-                          ));
-                        },
-                        backgroundColor: Colors.green,
-                        icon: Icons.edit,
-                      )
-                    ]),
-                    endActionPane: ActionPane(motion: ScrollMotion(), children: [
-                      SlidableAction(
-                        onPressed: (context) {
-                          Contect_List.contect.deleteAt(index);
-                          setState(() {});
-                        },
-                        backgroundColor: Colors.red,
-                        icon: Icons.delete,
-                      )
-                    ]),
-                    child: ListTile(
-                      leading: Container(
-                          height: 50,
-                          width: 50,
+      child: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Scaffold(
+          body: SafeArea(
+              child: (found_user.isEmpty)
+                  ? Center(
+                      child: Container(
                           decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              image: (cd.cropImage != "null")
-                                  ? DecorationImage(
-                                      image: FileImage(File(cd.cropImage)))
-                                  : null),
-                          child: (cd.cropImage == "null")
-                              ? Icon(
-                                  Icons.account_circle,
-                                  size: 50,
-                                )
-                              : Text("")),
-                      title: Text(
-                        "${cd.name}",
-                        style: TextStyle(fontSize: 20),
-                      ),
-                      subtitle: Text("+91 ${cd.contect}"),
+                              image: DecorationImage(
+                                  fit: BoxFit.contain,
+                                  image: AssetImage(
+                                      "image/corporate-business-communication-business-team-big-smartphone-business-people-trendy-vector_985641-305-removebg-preview.png")))),
+                    )
+                  : Column(
+                      children: [
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Card(
+                          color: Colors.white54,
+                          shape: OutlineInputBorder(
+                              borderSide: BorderSide.none,
+                              borderRadius: BorderRadius.circular(
+                                  MediaQuery.of(context).size.height * 0.05)),
+                          child: Container(
+                            alignment: Alignment.center,
+                            width: MediaQuery.of(context).size.width * 0.95,
+                            height: MediaQuery.of(context).size.height * 0.067,
+                            decoration: BoxDecoration(
+                                color: Colors.white54,
+                                borderRadius: BorderRadius.circular(
+                                    MediaQuery.of(context).size.height * 0.05)),
+                            child: TextField(
+                                onChanged: (value) {
+                                  return Search(value);
+                                },
+                                decoration: InputDecoration(
+                                    prefixIcon: Padding(
+                                      padding: const EdgeInsets.only(left: 10),
+                                      child: Icon(
+                                        Icons.search,
+                                        color: Colors.black87,
+                                        size: 30,
+                                      ),
+                                    ),
+                                    hintText: "Search Contects",
+                                    hintStyle: TextStyle(color: Colors.black54),
+                                    border: OutlineInputBorder(
+                                        borderSide: BorderSide.none,
+                                        borderRadius: BorderRadius.circular(
+                                            MediaQuery.of(context).size.height *
+                                                0.05)))),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: User.length,
+                            itemBuilder: (context, index) {
+                              Contect_Data cd =
+                                  Contect_List.contect.getAt(index);
+                              return Slidable(
+                                  startActionPane: ActionPane(
+                                      motion: ScrollMotion(),
+                                      children: [
+                                        SlidableAction(
+                                          onPressed: (context) {
+                                            Navigator.push(context,
+                                                MaterialPageRoute(
+                                              builder: (context) {
+                                                return Contect_add(cd);
+                                              },
+                                            ));
+                                          },
+                                          backgroundColor: Colors.green,
+                                          icon: Icons.edit,
+                                        )
+                                      ]),
+                                  endActionPane: ActionPane(
+                                      motion: ScrollMotion(),
+                                      children: [
+                                        SlidableAction(
+                                          onPressed: (context) {
+                                            Contect_List.contect
+                                                .deleteAt(index);
+                                            User.removeAt(index);
+                                            setState(() {});
+                                          },
+                                          backgroundColor: Colors.red,
+                                          icon: Icons.delete,
+                                        )
+                                      ]),
+                                  child: ListTile(
+                                    leading: Container(
+                                        height: 50,
+                                        width: 50,
+                                        decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            image: (User[index]["image"] !=
+                                                    "null")
+                                                ? DecorationImage(
+                                                    image: FileImage(File(
+                                                        User[index]["image"])))
+                                                : null),
+                                        child: (User[index]["image"] == "null")
+                                            ? Icon(
+                                                Icons.account_circle,
+                                                color: Colors.grey,
+                                                size: 50,
+                                              )
+                                            : Text("")),
+                                    title: Text(
+                                      "${User[index]["name"]}",
+                                      style: TextStyle(
+                                          fontSize: 20, color: Colors.black),
+                                    ),
+                                    subtitle: Text(
+                                        "+91 ${found_user[index]["contect"]}",
+                                        style: TextStyle(color: Colors.black)),
+                                  ));
+                            },
+                          ),
+                        ),
+                      ],
                     )),
-              );
+          floatingActionButton: FloatingActionButton(
+            backgroundColor: Colors.black,
+            isExtended: true,
+            elevation: 10,
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(
+                builder: (context) {
+                  return Contect_add();
+                },
+              ));
             },
-          )),
-        ),
-        floatingActionButton: FloatingActionButton(backgroundColor: Colors.deepPurpleAccent.shade100,
-          isExtended: true,
-          elevation: 10,
-          onPressed: () {
-            Navigator.push(context, MaterialPageRoute(
-              builder: (context) {
-                return Contect_add();
-              },
-            ));
-          },
-          child: Icon(
-            Icons.add,
-            size: 30,
+            child: Icon(
+              Icons.add,
+              size: 30,
+            ),
           ),
         ),
       ),
